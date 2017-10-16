@@ -675,13 +675,21 @@ gl.getContextAttributes = function () {
   return this._contextattributes
 }
 
+var _getSupportedExtensions = gl.getSupportedExtensions
 gl.getSupportedExtensions = function getSupportedExtensions () {
-  return [
+  var exts = [
     'ANGLE_instanced_arrays',
     'STACKGL_resize_drawingbuffer',
-    'STACKGL_destroy_context',
-    'OES_standard_derivatives'
+    'STACKGL_destroy_context'
   ]
+
+  var supportedExts = _getSupportedExtensions.call(this)
+
+  if (supportedExts.indexOf('GL_OES_standard_derivatives') >= 0) {
+    exts.push('OES_standard_derivatives')
+  }
+
+  return exts
 }
 
 function createANGLEInstancedArrays (context) {
@@ -884,6 +892,25 @@ function createANGLEInstancedArrays (context) {
   return result
 }
 
+function getOESStandardDerivatives (context) {
+  var result = null
+  var exts = context.getSupportedExtensions()
+
+  if (exts && exts.indexOf('OES_standard_derivatives') !== -1) {
+    result = new OES_standard_derivatives()
+
+    if (result) {
+      Object.defineProperty(gl, 'FRAGMENT_SHADER_DERIVATIVE_HINT_OES', {
+        value: result.FRAGMENT_SHADER_DERIVATIVE_HINT_OES,
+        configurable: false,
+        writable: false
+      })
+    }
+  }
+
+  return result
+}
+
 gl.getExtension = function getExtension (name) {
   var str = name.toLowerCase()
   if (str in this._extensions) {
@@ -903,7 +930,7 @@ gl.getExtension = function getExtension (name) {
       ext.resize = this.resize.bind(this)
       break
     case 'oes_standard_derivatives':
-      ext = new OES_standard_derivatives()
+      ext = getOESStandardDerivatives(this)
       break
   }
   if (ext) {
@@ -2548,6 +2575,9 @@ gl.getParameter = function getParameter (pname) {
     case gl.UNPACK_COLORSPACE_CONVERSION_WEBGL:
       return _getParameter.call(this, pname) | 0
 
+    case (this._extensions.oes_standard_derivatives && gl.FRAGMENT_SHADER_DERIVATIVE_HINT_OES):
+      return _getParameter.call(this, pname) | 0
+
     default:
       setError(this, gl.INVALID_ENUM)
       return null
@@ -2984,7 +3014,12 @@ gl.hint = function hint (target, mode) {
   target |= 0
   mode |= 0
 
-  if (target !== gl.GENERATE_MIPMAP_HINT) {
+  if (
+    !(
+      target === gl.GENERATE_MIPMAP_HINT ||
+      (this._extensions.oes_standard_derivatives && target === gl.FRAGMENT_SHADER_DERIVATIVE_HINT_OES)
+    )
+  ) {
     setError(this, gl.INVALID_ENUM)
     return
   }
