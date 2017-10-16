@@ -214,6 +214,11 @@ function STACKGL_resize_drawingbuffer () {
 
 function STACKGL_destroy_context () {
 }
+
+function OES_standard_derivatives () {
+  this.FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B
+}
+
 /* eslint-enable camelcase */
 
 function unpackTypedArray (array) {
@@ -670,7 +675,8 @@ gl.getSupportedExtensions = function getSupportedExtensions () {
   return [
     'ANGLE_instanced_arrays',
     'STACKGL_resize_drawingbuffer',
-    'STACKGL_destroy_context'
+    'STACKGL_destroy_context',
+    'OES_standard_derivatives'
   ]
 }
 
@@ -891,6 +897,9 @@ gl.getExtension = function getExtension (name) {
     case 'stackgl_resize_drawingbuffer':
       ext = new STACKGL_resize_drawingbuffer()
       ext.resize = this.resize.bind(this)
+      break
+    case 'oes_standard_derivatives':
+      ext = new OES_standard_derivatives()
       break
   }
   if (ext) {
