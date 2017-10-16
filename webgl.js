@@ -216,7 +216,11 @@ function STACKGL_destroy_context () {
 }
 
 function OES_standard_derivatives () {
-  this.FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B
+  Object.defineProperty(this, 'FRAGMENT_SHADER_DERIVATIVE_HINT_OES', {
+    value: 0x8B8B,
+    configurable: false,
+    writable: false
+  })
 }
 
 /* eslint-enable camelcase */
